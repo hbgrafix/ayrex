@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#06100e">
+<meta name="description" content="AYREX Network connects research, intelligence, technology, people and initiatives for meaningful impact.">
+<title>AYREX Network — Connecting Intelligence, Research & People</title>
+<style>
+:root{--bg:#06100e;--bg2:#091713;--panel:#0c1c17;--line:rgba(205,225,211,.13);--text:#f0f5f0;--muted:#a8b8ae;--gold:#d8ae5b;--mint:#8dc9a2;--max:1180px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:86px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.6}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit}
+button,a,input{ -webkit-tap-highlight-color:transparent}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+.wrap{width:min(var(--max),calc(100% - 48px));margin-inline:auto}
+.eyebrow{color:var(--gold);text-transform:uppercase;letter-spacing:.19em;font-size:.7rem;font-weight:750}
+header{position:sticky;top:0;z-index:20;background:rgba(6,16,14,.88);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+.nav{height:78px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{display:flex;align-items:center;gap:11px;min-width:max-content}
+.brand-mark{width:37px;height:37px;color:var(--gold)}
+.brand-name{font-size:1.25rem;letter-spacing:.22em;line-height:1;font-weight:350}
+.brand-sub{font-size:.53rem;letter-spacing:.53em;color:var(--muted);text-align:center;margin-top:6px}
+.navlinks{display:flex;align-items:center;gap:28px;color:#c3d0c8;font-size:.86rem}
+.navlinks a{transition:color .2s}
+.navlinks a:hover{color:var(--gold)}
+.nav-actions{display:flex;gap:12px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:12px 18px;border-radius:999px;border:1px solid var(--gold);color:#10150f;background:var(--gold);font-weight:750;font-size:.86rem;transition:transform .2s,background .2s}
+.btn:hover{transform:translateY(-2px);background:#e7c578}
+.btn-outline{background:transparent;color:var(--text)}
+.btn-outline:hover{color:#10150f}
+.menu-btn{display:none;border:1px solid var(--line);background:transparent;color:var(--text);padding:9px 12px;border-radius:10px}
+.hero{position:relative;overflow:hidden;padding:90px 0 82px;min-height:570px;display:flex;align-items:center}
+.hero:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 77% 45%,rgba(30,118,83,.19),transparent 35%),linear-gradient(90deg,#06100e 0%,rgba(6,16,14,.96) 37%,rgba(6,16,14,.15) 100%);pointer-events:none}
+.hero-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:30px;align-items:center;position:relative;z-index:1}
+.hero h1{font-weight:450;letter-spacing:-.055em;font-size:clamp(3rem,6vw,5.3rem);line-height:1.02;margin:18px 0 18px;max-width:650px}
+.hero h1 span{color:var(--mint)}
+.hero-lead{font-size:clamp(1.1rem,2vw,1.45rem);line-height:1.45;color:#d5e0d8;max-width:570px}
+.hero-copy{color:var(--muted);max-width:510px;font-size:.96rem;margin:18px 0 27px}
+.hero-buttons{display:flex;gap:12px;flex-wrap:wrap}
+.hero-art{position:relative;min-height:370px;display:grid;place-items:center}
+.orb{width:min(34vw,420px);aspect-ratio:1;border-radius:50%;position:relative;background:radial-gradient(circle at 36% 30%,rgba(127,204,156,.25),transparent 24%),radial-gradient(circle at 50% 48%,#102d23 0%,#07140f 57%,#050b09 70%);border:1px solid rgba(143,208,164,.3);box-shadow:inset -28px -20px 65px rgba(0,0,0,.8),0 0 80px rgba(31,136,91,.12)}
+.orb:before,.orb:after{content:"";position:absolute;inset:9%;border:1px solid rgba(216,174,91,.32);border-radius:50%;transform:rotate(-28deg) scaleX(.44)}
+.orb:after{transform:rotate(35deg) scaleX(.68);border-color:rgba(141,201,162,.35)}
+.orb-core{position:absolute;inset:22%;border-radius:50%;background:repeating-linear-gradient(25deg,transparent 0 20px,rgba(141,201,162,.08) 21px 22px),repeating-linear-gradient(110deg,transparent 0 28px,rgba(216,174,91,.1) 29px 30px);mask-image:radial-gradient(circle,#000 20%,transparent 73%)}
+.node{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 20px 5px rgba(216,174,91,.25)}
+.node.n1{top:18%;left:42%}.node.n2{top:43%;right:10%}.node.n3{bottom:24%;left:22%}.node.n4{bottom:16%;right:32%}.node.n5{top:30%;left:16%}
+.orbit-label{position:absolute;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:#a5c5b0}
+.orbit-label.one{top:7%;right:0}.orbit-label.two{bottom:7%;left:0}.orbit-label.three{right:0;bottom:26%;color:var(--gold)}
+.hero-bottom{position:absolute;bottom:22px;left:0;right:0;display:flex;justify-content:space-between;color:#799086;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase}
+section{padding:82px 0}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:30px;margin-bottom:34px}
+.section-head h2{font-size:clamp(2rem,4vw,3.15rem);font-weight:450;letter-spacing:-.045em;line-height:1.12;margin:10px 0 0}
+.section-intro{color:var(--muted);max-width:430px;margin:0}
+.pillars{background:linear-gradient(180deg,#091713,#07110e);border-block:1px solid var(--line)}
+.pillar-grid{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.pillar{padding:26px 22px;min-height:190px;border-right:1px solid var(--line);transition:background .2s}
+.pillar:last-child{border-right:0}.pillar:hover{background:rgba(141,201,162,.055)}
+.pillar svg{width:30px;height:30px;color:var(--gold);margin-bottom:18px}
+.pillar h3{margin:0 0 7px;font-size:1rem;font-weight:650}
+.pillar p{margin:0;color:var(--muted);font-size:.84rem;line-height:1.55}
+.initiative-layout,.insight-layout{display:grid;grid-template-columns:.72fr 1.55fr;gap:55px;align-items:start}
+.section-aside h2{font-size:clamp(2rem,3.5vw,3rem);font-weight:450;line-height:1.1;letter-spacing:-.045em;margin:12px 0}
+.section-aside p{color:var(--muted);margin:0 0 24px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{border:1px solid var(--line);background:linear-gradient(150deg,rgba(17,42,32,.8),rgba(8,20,16,.8));border-radius:15px;overflow:hidden;min-width:0;transition:transform .2s,border-color .2s}
+.card:hover{transform:translateY(-4px);border-color:rgba(216,174,91,.5)}
+.card-art{height:150px;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 45%,rgba(216,174,91,.24),transparent 12%),linear-gradient(140deg,#183d2e,#081510 65%)}
+.card-art:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,transparent 0 24px,rgba(141,201,162,.06) 25px 26px)}
+.card-art svg{position:absolute;width:58px;height:58px;left:calc(50% - 29px);top:calc(50% - 29px);color:var(--gold);opacity:.9}
+.card:nth-child(2) .card-art{background:radial-gradient(ellipse at 50% 100%,rgba(216,174,91,.18),transparent 40%),linear-gradient(130deg,#253328,#0b1712)}
+.card:nth-child(3) .card-art{background:radial-gradient(circle at 50% 50%,rgba(49,125,92,.4),transparent 35%),linear-gradient(130deg,#0d2923,#06100e)}
+.card-body{padding:19px}
+.card-tag{font-size:.62rem;color:var(--gold);text-transform:uppercase;letter-spacing:.14em;font-weight:750}
+.card h3{font-size:1.12rem;line-height:1.3;margin:8px 0}
+.card p{font-size:.83rem;color:var(--muted);margin:0 0 16px}
+.card-link{font-size:.83rem;color:var(--mint);font-weight:650}
+.insights{background:#08130f;border-block:1px solid var(--line)}
+.insight-card .card-art{height:120px}
+.insight-card:nth-child(1) .card-art{background:linear-gradient(145deg,#1c3e31,#0b1711)}
+.insight-card:nth-child(2) .card-art{background:linear-gradient(145deg,#172e38,#07110f)}
+.insight-card:nth-child(3) .card-art{background:linear-gradient(145deg,#34452d,#0a1711)}
+.date{font-size:.64rem;color:#83998d;letter-spacing:.08em;text-transform:uppercase}
+.insight-card h3{font-size:.98rem}
+.join{padding:76px 0;background:radial-gradient(ellipse at 50% 120%,rgba(30,113,76,.25),transparent 58%),linear-gradient(120deg,#0c1d16,#09130f);text-align:center;border-bottom:1px solid var(--line)}
+.join h2{font-size:clamp(2.1rem,4vw,3.3rem);font-weight:450;letter-spacing:-.05em;margin:10px 0}
+.join p{color:var(--muted);max-width:570px;margin:0 auto 24px}
+footer{padding:42px 0 24px}
+.footer-grid{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:45px;padding-bottom:34px}
+.footer-desc{color:var(--muted);font-size:.85rem;max-width:260px}
+.footer-links{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:.84rem;color:#c0cec5}
+.footer-links a:hover{color:var(--gold)}
+.signup label{display:block;font-size:.9rem;font-weight:650;margin-bottom:6px}
+.signup p{color:var(--muted);font-size:.8rem;margin:0 0 12px}
+.signup-row{display:flex;gap:8px}
+.signup input{min-width:0;flex:1;border:1px solid var(--line);border-radius:999px;background:#0a1a14;color:var(--text);padding:12px 15px}
+.signup button{border:0;border-radius:999px;padding:0 18px;background:var(--gold);font-weight:800;cursor:pointer}
+.form-message{min-height:1.4em;color:var(--mint);font-size:.8rem;margin-top:8px}
+.footer-bottom{border-top:1px solid var(--line);padding-top:20px;display:flex;justify-content:space-between;gap:18px;color:#7e9287;font-size:.74rem}
+.footer-bottom a{margin-left:18px}
+.notice{position:fixed;right:20px;bottom:20px;max-width:340px;padding:14px 18px;background:#153126;border:1px solid rgba(141,201,162,.3);border-radius:12px;box-shadow:0 12px 40px #0008;z-index:50;display:none}
+.notice.show{display:block}
+@media(max-width:900px){.navlinks{gap:16px}.navlinks a{font-size:.8rem}.nav-actions .btn{display:none}.hero-grid{grid-template-columns:1fr .8fr}.hero-art{min-height:300px}.orb{width:min(37vw,330px)}.pillar{padding:22px 15px}.initiative-layout,.insight-layout{grid-template-columns:1fr;gap:28px}.section-aside{max-width:650px}.cards{gap:12px}}
+@media(max-width:680px){.wrap{width:min(var(--max),calc(100% - 32px))}.nav{height:68px}.brand-name{font-size:1.08rem}.brand-mark{width:32px;height:32px}.menu-btn{display:block}.navlinks{display:none;position:absolute;top:68px;left:0;right:0;background:#081510;border-bottom:1px solid var(--line);padding:18px 24px 22px;flex-direction:column;align-items:stretch;gap:0}.navlinks.open{display:flex}.navlinks a{padding:12px 0;border-bottom:1px solid var(--line);font-size:.95rem}.navlinks a:last-child{border-bottom:0}.hero{padding:62px 0 64px;min-height:auto}.hero-grid{grid-template-columns:1fr;gap:12px}.hero h1{font-size:clamp(3rem,14vw,4.4rem)}.hero-art{min-height:245px;order:-1}.orb{width:235px}.orbit-label.one{right:5%;top:2%}.orbit-label.two{left:2%;bottom:0}.orbit-label.three{right:1%;bottom:17%}.hero-bottom{position:relative;bottom:auto;margin-top:30px;gap:10px;font-size:.58rem}.hero-bottom span:last-child{text-align:right}.section-head{align-items:start;flex-direction:column;gap:14px}.section-head h2{font-size:2.25rem}section{padding:60px 0}.pillar-grid{grid-template-columns:repeat(2,1fr)}.pillar{min-height:165px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.pillar:nth-child(2n){border-right:0}.pillar:last-child{grid-column:span 2;border-bottom:0}.cards{grid-template-columns:1fr}.card{display:grid;grid-template-columns:110px 1fr}.card-art,.insight-card .card-art{height:100%;min-height:150px}.card-art svg{width:42px;height:42px;left:calc(50% - 21px)}.card-body{padding:16px}.footer-grid{grid-template-columns:1fr;gap:28px}.footer-bottom{flex-direction:column}.footer-bottom a{margin:0 16px 0 0}.join{padding:60px 0}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap nav">
+<a class="brand" href="#home" aria-label="AYREX Network home">
+<svg class="brand-mark" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M5 39 23.8 6 43 39H30.5L23.8 27.5 17.2 39H5Z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M17.5 39 24 27.5 30.5 39M12 27.5h24" stroke="currentColor" stroke-width="1.5" opacity=".65"/></svg>
+<span><span class="brand-name">AYREX</span><span class="brand-sub">N E T W O R K</span></span>
+</a>
+<nav class="navlinks" id="navlinks" aria-label="Main navigation">
+<a href="#home">Home</a><a href="#initiatives">Initiatives</a><a href="#insights">Insights</a><a href="#about">About</a><a href="#community">Community</a>
+</nav>
+<div class="nav-actions"><a class="btn btn-outline" href="#community">Join the Network <span aria-hidden="true">↗</span></a><button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navlinks">Menu ☰</button></div>
+</div>
+</header>
+<main>
+<section class="hero" id="home">
+<div class="wrap hero-grid">
+<div>
+<div class="eyebrow">Research · Intelligence · Technology · People</div>
+<h1>Curiosity<br>with <span>purpose.</span></h1>
+<div class="hero-lead">Connecting intelligence, research and people to create meaningful impact.</div>
+<p class="hero-copy">AYREX Network is an evolving ecosystem for ideas, initiatives and collaboration — built to turn knowledge into action and possibility into progress.</p>
+<div class="hero-buttons"><a class="btn" href="#initiatives">Explore our initiatives <span aria-hidden="true">→</span></a><a class="btn btn-outline" href="#about">Discover AYREX <span aria-hidden="true">↗</span></a></div>
+</div>
+<div class="hero-art" aria-label="Abstract globe with connected points">
+<div class="orb"><div class="orb-core"></div><i class="node n1"></i><i class="node n2"></i><i class="node n3"></i><i class="node n4"></i><i class="node n5"></i></div>
+<span class="orbit-label one">Ideas → Impact</span><span class="orbit-label two">One connected network</span><span class="orbit-label three">Human potential</span>
+</div>
+</div>
+<div class="wrap hero-bottom"><span>Independent thinking. Shared progress.</span><span>Built for what comes next ↘</span></div>
+</section>
+
+<section class="pillars" id="about">
+<div class="wrap">
+<div class="section-head"><div><div class="eyebrow">The AYREX perspective</div><h2>Five pillars. One vision.</h2></div><p class="section-intro">Progress happens when knowledge, tools and people work together. AYREX creates space for that connection.</p></div>
+<div class="pillar-grid">
+<article class="pillar"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="13" cy="13" r="8.5"/><path d="m19.5 19.5 8 8"/></svg><h3>Research</h3><p>Generating knowledge for better decisions.</p></article>
+<article class="pillar"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 5c-5-5-12 1-10 6-5 3-3 10 1 11-1 6 5 8 9 4M16 5c5-5 12 1 10 6 5 3 3 10-1 11 1 6-5 8-9 4M16 5v22"/><path d="M9 12h4m-6 6h5m11-6h-4m6 6h-5M11 24l3-3m7-9-3 3"/></svg><h3>Intelligence</h3><p>Turning information into useful insight.</p></article>
+<article class="pillar"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="8" y="8" width="16" height="16" rx="2"/><path d="M12 12h8v8h-8zM12 2v5m8-5v5M12 25v5m8-5v5M2 12h5m-5 8h5m18-8h5m-5 8h5"/></svg><h3>Technology</h3><p>Building tools for real-world needs.</p></article>
+<article class="pillar"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="10" r="5"/><circle cx="23" cy="12" r="4"/><path d="M2 28v-3c0-5 4-8 10-8s10 3 10 8v3M22 19c5 0 8 3 8 7v2"/></svg><h3>People</h3><p>Connecting minds and creating opportunity.</p></article>
+<article class="pillar"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20 18 6c4-4 9-3 9-3s1 5-3 9L10 26l-6-6Z"/><path d="m14 10 8 8M5 25l-2 5 5-2M21 5l6 6"/><circle cx="21" cy="11" r="2"/></svg><h3>Initiatives</h3><p>Turning promising ideas into lasting impact.</p></article>
+</div>
+</div>
+</section>
+
+<section id="initiatives">
+<div class="wrap initiative-layout">
+<div class="section-aside"><div class="eyebrow">Ideas in action</div><h2>One network.<br>Many possibilities.</h2><p>AYREX brings together focused initiatives across research, learning, technology and community — each with its own purpose, connected by a shared vision.</p><a class="btn btn-outline" href="#community">Explore the ecosystem <span aria-hidden="true">→</span></a></div>
+<div class="cards">
+<article class="card"><div class="card-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 48 25 17l10 18 7-12 14 25H8Z"/><path d="m21 48 10-16 10 16M4 54h56"/><circle cx="47" cy="12" r="4"/></svg></div><div class="card-body"><div class="card-tag">Learning · Technology</div><h3>TAD — The A.I. Diet</h3><p>Learn with intention. Build knowledge, digital wisdom and better habits.</p><a class="card-link" href="#community" data-notice="TAD initiative page can be connected here next.">Explore TAD ↗</a></div></article>
+<article class="card"><div class="card-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 53V28l24-17 24 17v25H8Z"/><path d="M17 53V32h30v21M25 53V39h14v14M5 28h54M17 20l15 11 15-11"/></svg></div><div class="card-body"><div class="card-tag">Research · Community</div><h3>Pakistan Research Cafe</h3><p>A space for research conversations, collaboration and discovery.</p><a class="card-link" href="#community" data-notice="Pakistan Research Cafe page can be connected here next.">Discover PRC ↗</a></div></article>
+<article class="card"><div class="card-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M32 6 39 22 56 25 44 37 47 54 32 46 17 54 20 37 8 25 25 22 32 6Z"/><circle cx="32" cy="31" r="7"/><path d="M32 24v14M25 31h14"/></svg></div><div class="card-body"><div class="card-tag">Community · Impact</div><h3>The Community House</h3><p>Bringing people together around learning, ideas and shared progress.</p><a class="card-link" href="#community" data-notice="The Community House page can be connected here next.">Meet the community ↗</a></div></article>
+</div>
+</div>
+</section>
+
+<section class="insights" id="insights">
+<div class="wrap insight-layout">
+<div class="section-aside"><div class="eyebrow">Notes from the network</div><h2>Ideas worth exploring.</h2><p>Perspectives on research, responsible technology, learning and the systems shaping our future.</p><a class="btn btn-outline" href="#community">Join the conversation <span aria-hidden="true">→</span></a></div>
+<div class="cards">
+<article class="card insight-card"><div class="card-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="32" cy="32" r="22"/><path d="M10 32h44M32 10c8 8 8 36 0 44M32 10c-8 8-8 36 0 44M15 19h34M15 45h34"/></svg></div><div class="card-body"><div class="date">Research · Perspective</div><h3>From information to meaningful insight</h3><p>Why asking better questions is the start of better decisions.</p><a class="card-link" href="#community" data-notice="Insights can be linked to published articles when ready.">Read the idea ↗</a></div></article>
+<article class="card insight-card"><div class="card-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="15" y="15" width="34" height="34" rx="4"/><path d="M23 23h18v18H23zM3 22h10m-10 10h10m-10 10h10m38-20h10m-10 10h10m-10 10h10M22 3v10m10-10v10m10-10v10M22 51v10m10-10v10m10-10v10"/></svg></div><div class="card-body"><div class="date">Technology · Learning</div><h3>Building technology around people</h3><p>Tools matter most when they solve meaningful problems.</p><a class="card-link" href="#community" data-notice="Insights can be linked to published articles when ready.">Read the idea ↗</a></div></article>
+<article class="card insight-card"><div class="card-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M32 55s-22-13-22-30a12 12 0 0 1 22-6 12 12 0 0 1 22 6C54 42 32 55 32 55Z"/><path d="M32 19v25M20 32h24"/></svg></div><div class="card-body"><div class="date">People · Impact</div><h3>Progress is a collective effort</h3><p>Strong communities turn individual curiosity into shared impact.</p><a class="card-link" href="#community" data-notice="Insights can be linked to published articles when ready.">Read the idea ↗</a></div></article>
+</div>
+</div>
+</section>
+
+<section class="join" id="community">
+<div class="wrap"><div class="eyebrow">Be part of the network</div><h2>Curiosity is better connected.</h2><p>Whether you research, build, teach or simply ask better questions, there is room to grow ideas into action with AYREX.</p><a class="btn" href="#newsletter">Stay connected <span aria-hidden="true">→</span></a></div>
+</section>
+</main>
+<footer id="newsletter">
+<div class="wrap">
+<div class="footer-grid">
+<div><a class="brand" href="#home"><svg class="brand-mark" viewBox="0 0 48 48" fill="none"><path d="M5 39 23.8 6 43 39H30.5L23.8 27.5 17.2 39H5Z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg><span><span class="brand-name">AYREX</span><span class="brand-sub">N E T W O R K</span></span></a><p class="footer-desc">Connecting intelligence, research and people. Curiosity with purpose.</p></div>
+<div><div class="eyebrow" style="margin-bottom:14px">Explore</div><div class="footer-links"><a href="#home">Home</a><a href="#about">About</a><a href="#initiatives">Initiatives</a><a href="#insights">Insights</a><a href="#community">Community</a><a href="mailto:hello@ayrexnetwork.com">Contact</a></div></div>
+<form class="signup" id="signupForm"><label for="email">Stay in the loop</label><p>Occasional notes on new initiatives, ideas and opportunities.</p><div class="signup-row"><input id="email" type="email" placeholder="Your email address" required aria-label="Your email address"><button type="submit" aria-label="Submit email">→</button></div><div class="form-message" id="formMessage" aria-live="polite"></div></form>
+</div>
+<div class="footer-bottom"><span>© <span id="year"></span> AYREX Network. Built with curiosity and purpose.</span><span><a href="#newsletter" data-notice="Add your privacy policy before collecting real subscriber data.">Privacy</a><a href="#newsletter" data-notice="Add your terms of use before launching public services.">Terms</a><a href="mailto:hello@ayrexnetwork.com">Contact</a></span></div>
+</div>
+</footer>
+<div class="notice" id="notice" role="status" aria-live="polite"></div>
+<script>
+(() => {
+const menuBtn = document.getElementById('menuBtn');
+const nav = document.getElementById('navlinks');
+menuBtn.addEventListener('click', () => {
+const open = nav.classList.toggle('open');
+menuBtn.setAttribute('aria-expanded', String(open));
+menuBtn.textContent = open ? 'Close ×' : 'Menu ☰';
+});
+nav.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+nav.classList.remove('open');
+menuBtn.setAttribute('aria-expanded','false');
+menuBtn.textContent = 'Menu ☰';
+}));
+const notice = document.getElementById('notice');
+let noticeTimer;
+function showNotice(message) {
+notice.textContent = message;
+notice.classList.add('show');
+clearTimeout(noticeTimer);
+noticeTimer = setTimeout(() => notice.classList.remove('show'), 4200);
+}
+document.querySelectorAll('[data-notice]').forEach(link => link.addEventListener('click', event => {
+event.preventDefault();
+showNotice(link.dataset.notice);
+}));
+document.getElementById('year').textContent = new Date().getFullYear();
+document.getElementById('signupForm').addEventListener('submit', event => {
+event.preventDefault();
+const email = document.getElementById('email');
+const msg = document.getElementById('formMessage');
+msg.textContent = 'Design demo only: connect this form to a mailing-list service to collect subscriptions.';
+email.value = '';
+});
+})();
+</script>
+</body>
+</html>

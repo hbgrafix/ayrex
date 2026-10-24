@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Data Flow Architect</title>
+    
+    <!-- External Assets -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/litegraph.js@0.7.9/css/litegraph.css">
+    <script src="https://cdn.jsdelivr.net/npm/litegraph.js@0.7.9/build/litegraph.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f0f11;
+            --bg-panel: #18181b;
+            --bg-item: #27272a;
+            --border: #3f3f46;
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.2);
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-dark); color: var(--text-main);
+            overflow: hidden; display: flex; flex-direction: column;
+        }
+
+        header {
+            background-color: var(--bg-panel);
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            height: 56px;
+            box-sizing: border-box;
+            z-index: 100;
+        }
+
+        .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+        .logo-icon { width: 12px; height: 12px; background: var(--accent); border-radius: 2px; box-shadow: 0 0 10px var(--accent); }
+
+        .header-actions { display: flex; gap: 12px; align-items: center; }
+
+        #preset-select {
+            background: var(--bg-item); color: white; border: 1px solid var(--border);
+            padding: 6px 12px; font-size: 13px; border-radius: 6px; outline: none;
+            cursor: pointer; transition: border-color 0.2s;
+        }
+        #preset-select:hover { border-color: var(--accent); }
+
+        #main-container { display: flex; flex: 1; height: calc(100% - 56px); }
+
+        #canvas-wrapper { flex: 1; position: relative; background: radial-gradient(circle, #1a1a1c 1px, transparent 1px); background-size: 30px 30px; }
+        #graphcanvas { width: 100%; height: 100%; }
+
+        #inspector-panel {
+            width: 420px; background-color: var(--bg-panel); border-left: 1px solid var(--border);
+            display: flex; flex-direction: column; z-index: 50;
+        }
+
+        .panel-header {
+            padding: 20px; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .panel-header h2 { margin: 0; font-size: 16px; font-weight: 600; }
+
+        .panel-content { padding: 20px; overflow-y: auto; flex: 1; }
+
+        /* Knowledge Base System */
+        .kb-container { margin-bottom: 24px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+        .kb-header {
+            background: var(--bg-item); padding: 10px 14px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--accent);
+        }
+        .kb-body { padding: 14px; background: rgba(0,0,0,0.2); display: none; }
+        .kb-body.open { display: block; border-top: 1px solid var(--border); }
+        .kb-body h4 { margin: 0 0 8px 0; font-size: 13px; color: #fff; }
+        .kb-body p { margin: 0 0 12px 0; font-size: 12px; line-height: 1.5; color: var(--text-muted); }
+        .kb-tag { display: inline-block; background: #1e293b; color: #38bdf8; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 4px; font-family: monospace; }
+
+        /* Form Controls */
+        .form-section { margin-bottom: 20px; }
+        .label-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .label-group label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+        
+        input, select, textarea {
+            width: 100%; background-color: var(--bg-item); border: 1px solid var(--border);
+            color: white; padding: 10px; border-radius: 6px; box-sizing: border-box;
+            font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 12px; transition: border-color 0.2s;
+        }
+        input:focus, select:focus { border-color: var(--accent); outline: none; }
+        textarea { height: 120px; resize: none; }
+
+        .action-btn {
+            background: var(--accent); color: white; border: none; padding: 10px;
+            border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%;
+            transition: transform 0.1s, opacity 0.2s; font-size: 13px;
+        }
+        .action-btn:active { transform: scale(0.98); }
+
+        /* Table & Visualization */
+        .viz-card { background: var(--bg-item); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+        .table-scroll { max-height: 300px; overflow: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th { background: #111; padding: 10px; text-align: left; color: var(--accent); font-weight: 700; position: sticky; top: 0; }
+        td { padding: 10px; border-top: 1px solid var(--border); color: #d4d4d8; }
+        .chart-wrap { height: 260px; padding: 15px; background: white; border-radius: 6px; margin-top: 10px; }
+
+        .empty-state {
+            text-align: center; color: var(--text-muted); padding: 60px 20px;
+            font-size: 13px; border: 2px dashed var(--border); border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo"><div class="logo-icon"></div> FLOW ARCHITECT <span style="font-weight: 300; opacity: 0.5; margin-left: 10px; font-size: 12px;">v2.5 Professional</span></div>
+        <div class="header-actions">
+            <select id="preset-select">
+                <option value="ecommerce">Case: High-Volume Retail Pipeline</option>
+                <option value="logistics">Case: Global Logistics Risk Matrix</option>
+                <option value="saas">Case: SaaS Revenue Retention Funnel</option>
+                <option value="iot">Case: Industrial IoT Sensor Cluster</option>
+            </select>
+            <button onclick="loadCurrentPreset()" class="action-btn" style="width: auto; padding: 6px 16px;">Deploy Architecture</button>
+        </div>
+    </header>
+
+    <div id="main-container">
+        <div id="canvas-wrapper">
+            <canvas id="graphcanvas"></canvas>
+        </div>
+
+        <div id="inspector-panel">
+            <div class="panel-header" id="panel-title">
+                <h2>System Configuration</h2>
+            </div>
+            <div class="panel-content" id="panel-content">
+                <div class="empty-state">Select a system node to view its protocol and configuration.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let graph, canvas, currentChart;
+        let isKbOpen = true;
+
+        const NODE_METADATA = {
+            "Data/Source": {
+                desc: "Enterprise data ingestion engine. Normalizes disparate input streams into standard flow packets.",
+                specs: "Supports Nested JSON Objects and CSV Raw Buffers.",
+                tags: ["Ingestion", "ETL", "Provider"],
+                usage: "Acts as the 'Root' node. Connect its 'Stream' output to processing gates."
+            },
+            "Logic/Gate": {
+                desc: "Logic-based stream separator. Directs data based on precision predicate evaluation.",
+                specs: "Thread-safe evaluation. Supports boolean logic and numeric thresholds.",
+                tags: ["Processor", "Router", "Filtering"],
+                usage: "Place after a Source node to split data into priority buckets (e.g., High-Value vs Standard)."
+            },
+            "Render/Grid": {
+                desc: "Operational data grid for real-time inspection and auditing of processed packets.",
+                specs: "Dynamic schema detection. CSS-grid based high-density rendering.",
+                tags: ["Audit", "Debugger", "Reporting"],
+                usage: "Attach to any 'Out' port to monitor raw data integrity during flow."
+            },
+            "Render/Chart": {
+                desc: "Business Intelligence visualization engine. Aggregates stream data into executive dashboards.",
+                specs: "WebGL/Canvas acceleration. Responsive layout engine.",
+                tags: ["Visualization", "Executive", "Analytics"],
+                usage: "Ideally connected to filtered outputs to visualize specific KPIs."
+            }
+        };
+
+        const PRESETS = {
+            ecommerce: () => {
+                graph.clear();
+                const src = createNode("Data/Source", [40, 200]);
+                src.properties.rawData = JSON.stringify([
+                    { sku: "SKU-001", cat: "Electronics", rev: 1500, region: "EMEA", stock: 12 },
+                    { sku: "SKU-002", cat: "Home", rev: 450, region: "APAC", stock: 105 },
+                    { sku: "SKU-003", cat: "Electronics", rev: 3200, region: "AMER", stock: 4 },
+                    { sku: "SKU-004", cat: "Fashion", rev: 890, region: "EMEA", stock: 45 },
+                    { sku: "SKU-005", cat: "Electronics", rev: 2100, region: "AMER", stock: 2 }
+                ], null, 2);
+
+                const highValueGate = createNode("Logic/Gate", [320, 100]);
+                highValueGate.title = "Revenue Threshold > 1k";
+                highValueGate.properties.column = "rev"; highValueGate.properties.threshold = "1000";
+
+                const lowStockGate = createNode("Logic/Gate", [320, 300]);
+                lowStockGate.title = "Critical Stock < 10";
+                lowStockGate.properties.column = "stock"; lowStockGate.properties.operator = "<"; lowStockGate.properties.threshold = "10";
+
+                const chart = createNode("Render/Chart", [620, 40]);
+                chart.properties.labelColumn = "sku"; chart.properties.valueColumn = "rev";
+                chart.properties.title = "Top Revenue SKU Stream";
+
+                const grid = createNode("Render/Grid", [620, 320]);
+                
+                src.connect(0, highValueGate, 0);
+                src.connect(0, lowStockGate, 0);
+                highValueGate.connect(0, chart, 0);
+                lowStockGate.connect(0, grid, 0);
+                canvas.selectNode(highValueGate);
+            },
+            logistics: () => {
+                graph.clear();
+                const src = createNode("Data/Source", [40, 250]);
+                src.properties.dataType = "csv";
+                src.properties.rawData = "Shipment,Origin,Delay_Hrs,Value_USD,Status\nS-772,Frankfurt,2.5,45000,Delayed\nS-773,Shanghai,0.5,12000,Transit\nS-774,New York,14.0,250000,Critical\nS-775,Dubai,1.0,8000,Transit\nS-776,London,8.5,95000,Delayed";
+
+                const delayGate = createNode("Logic/Gate", [320, 250]);
+                delayGate.title = "Risk Monitor: Delay > 5h";
+                delayGate.properties.column = "Delay_Hrs"; delayGate.properties.threshold = "5";
+
+                const grid = createNode("Render/Grid", [600, 100]);
+                const chart = createNode("Render/Chart", [600, 350]);
+                chart.properties.chartType = "bar"; chart.properties.labelColumn = "Shipment"; chart.properties.valueColumn = "Value_USD";
+                chart.properties.title = "High Value Risk Distribution";
+
+                src.connect(0, delayGate, 0);
+                delayGate.connect(0, grid, 0);
+                delayGate.connect(0, chart, 0);
+                canvas.selectNode(delayGate);
+            },
+            saas: () => {
+                graph.clear();
+                const src = createNode("Data/Source", [40, 200]);
+                src.properties.rawData = JSON.stringify([
+                    { company: "CloudScale", seats: 150, usage: 92, health: "Optimal" },
+                    { company: "DataFlow", seats: 45, usage: 12, health: "At Risk" },
+                    { company: "NeoTech", seats: 500, usage: 88, health: "Optimal" },
+                    { company: "SlowMo", seats: 20, usage: 5, health: "Churn Warning" }
+                ], null, 2);
+
+                const riskGate = createNode("Logic/Gate", [320, 200]);
+                riskGate.title = "Churn Filter: Usage < 20%";
+                riskGate.properties.column = "usage"; riskGate.properties.operator = "<"; riskGate.properties.threshold = "20";
+
+                const chart = createNode("Render/Chart", [600, 50]);
+                chart.properties.chartType = "pie"; chart.properties.labelColumn = "company"; chart.properties.valueColumn = "seats";
+                chart.properties.title = "Seats at Churn Risk";
+
+                const auditTable = createNode("Render/Grid", [600, 350]);
+
+                src.connect(0, riskGate, 0);
+                riskGate.connect(0, chart, 0);
+                riskGate.connect(0, auditTable, 0);
+                canvas.selectNode(riskGate);
+            },
+            iot: () => {
+                graph.clear();
+                const src = createNode("Data/Source", [40, 200]);
+                src.properties.rawData = JSON.stringify([
+                    { sensor: "T-101", val: 88, unit: "Celsius" },
+                    { sensor: "P-202", val: 140, unit: "PSI" },
+                    { sensor: "T-103", val: 95, unit: "Celsius" },
+                    { sensor: "P-204", val: 110, unit: "PSI" }
+                ], null, 2);
+
+                const overheatGate = createNode("Logic/Gate", [320, 200]);
+                overheatGate.title = "Temp Guard > 90C";
+                overheatGate.properties.column = "val"; overheatGate.properties.threshold = "90";
+
+                const chart = createNode("Render/Chart", [600, 200]);
+                chart.properties.chartType = "line"; chart.properties.labelColumn = "sensor"; chart.properties.valueColumn = "val";
+
+                src.connect(0, overheatGate, 0);
+                overheatGate.connect(0, chart, 0);
+                canvas.selectNode(overheatGate);
+            }
+        };
+
+        function createNode(type, pos) {
+            const n = LiteGraph.createNode(type);
+            if (!n) return null;
+            n.pos = pos;
+            graph.add(n);
+            return n;
+        }
+
+        function loadCurrentPreset() {
+            const v = document.getElementById('preset-select').value;
+            if (PRESETS[v]) PRESETS[v]();
+        }
+
+        function toggleKb() {
+            isKbOpen = !isKbOpen;
+            const body = document.querySelector('.kb-body');
+            if (body) body.classList.toggle('open', isKbOpen);
+            const arrow = document.getElementById('kb-arrow');
+            if (arrow) arrow.textContent = isKbOpen ? '▼' : '▶';
+        }
+
+        function csvToJson(csv) {
+            const lines = csv.split('\n').filter(l => l.trim());
+            if (lines.length < 2) return [];
+            const headers = lines[0].split(',').map(h => h.trim());
+            return lines.slice(1).map(line => {
+                const cols = line.split(',');
+                const obj = {};
+                headers.forEach((h, i) => {
+                    let v = cols[i]?.trim();
+                    obj[h] = isNaN(v) || v === '' ? v : Number(v);
+                });
+                return obj;
+            });
+        }
+
+        function updateProp(id, prop, val) {
+            const n = graph.getNodeById(id);
+            if(n) { n.properties[prop] = val; graph.runStep(); renderInspector(n); }
+        }
+
+        function renderChart(node, data) {
+            const canvasEl = document.getElementById('chartCtx');
+            if(!canvasEl || !data || data.length === 0) return;
+            if (currentChart) currentChart.destroy();
+            const lCol = node.properties.labelColumn;
+            const vCol = node.properties.valueColumn;
+            currentChart = new Chart(canvasEl, {
+                type: node.properties.chartType,
+                data: {
+                    labels: data.map(d => d[lCol] || 'Key'),
+                    datasets: [{
+                        label: node.properties.title || vCol,
+                        data: data.map(d => Number(d[vCol]) || 0),
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: node.properties.chartType === 'pie', labels: {color: '#666'} } },
+                    scales: node.properties.chartType === 'pie' ? {} : { 
+                        y: { ticks: {color: '#999'}, grid: {color: '#eee'} },
+                        x: { ticks: {color: '#999'}, grid: {display: false} }
+                    }
+                }
+            });
+        }
+
+        function renderInspector(node) {
+            const content = document.getElementById('panel-content');
+            if (!node) return;
+            
+            // Safety check for metadata lookup
+            const meta = NODE_METADATA[node.type] || {
+                desc: "Custom operational node with dynamic parameters.",
+                specs: "Standard I/O protocol.",
+                tags: ["System"],
+                usage: "Configure parameters below to adjust flow logic."
+            };
+            
+            let html = `
+                <div class="kb-container">
+                    <div class="kb-header" onclick="toggleKb()">
+                        <span>Knowledge Base Protocol</span>
+                        <span id="kb-arrow">${isKbOpen ? '▼' : '▶'}</span>
+                    </div>
+                    <div class="kb-body ${isKbOpen ? 'open' : ''}">
+                        <h4>${node.type.split('/')[1] || node.type} System</h4>
+                        <p>${meta.desc}</p>
+                        <div style="margin-bottom: 12px;">
+                            ${meta.tags.map(t => `<span class="kb-tag">${t}</span>`).join('')}
+                        </div>
+                        <p style="font-size: 11px; color: var(--accent);"><strong>Deployment Logic:</strong> ${meta.usage}</p>
+                    </div>
+                </div>
+            `;
+
+            if (node.type === "Data/Source") {
+                html += `
+                    <div class="form-section">
+                        <div class="label-group"><label>Payload Format</label></div>
+                        <select onchange="updateProp(${node.id}, 'dataType', this.value)">
+                            <option value="json" ${node.properties.dataType==='json'?'selected':''}>Structured JSON</option>
+                            <option value="csv" ${node.properties.dataType==='csv'?'selected':''}>Raw CSV Buffer</option>
+                        </select>
+                    </div>
+                    <div class="form-section">
+                        <div class="label-group"><label>Raw Data Stream</label></div>
+                        <textarea id="raw-payload">${node.properties.rawData}</textarea>
+                        <button class="action-btn" style="margin-top:10px" onclick="updateProp(${node.id}, 'rawData', document.getElementById('raw-payload').value)">Hot-Reload Stream</button>
+                    </div>
+                `;
+            } else if (node.type === "Logic/Gate") {
+                html += `
+                    <div class="form-section">
+                        <div class="label-group"><label>Evaluation Key</label></div>
+                        <input type="text" value="${node.properties.column}" onchange="updateProp(${node.id}, 'column', this.value)">
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-section">
+                            <div class="label-group"><label>Operator</label></div>
+                            <select onchange="updateProp(${node.id}, 'operator', this.value)">
+                                <option value=">" ${node.properties.operator==='>'?'selected':''}>Greater (>)</option>
+                                <option value="<" ${node.properties.operator==='<'?'selected':''}>Less (<)</option>
+                                <option value="==" ${node.properties.operator==='=='?'selected':''}>Exact (==)</option>
+                            </select>
+                        </div>
+                        <div class="form-section">
+                            <div class="label-group"><label>Value</label></div>
+                            <input type="text" value="${node.properties.threshold}" onchange="updateProp(${node.id}, 'threshold', this.value)">
+                        </div>
+                    </div>
+                `;
+            } else if (node.type === "Render/Grid") {
+                const d = node.latestData;
+                if (!d || d.length === 0) {
+                    html += `<div class="empty-state">No active data packets detected.</div>`;
+                } else {
+                    html += `<div class="viz-card"><div class="table-scroll"><table><thead><tr>`;
+                    Object.keys(d[0]).forEach(k => html += `<th>${k}</th>`);
+                    html += `</tr></thead><tbody>`;
+                    d.slice(0, 50).forEach(r => { // Limit to 50 for performance
+                        html += `<tr>`;
+                        Object.keys(d[0]).forEach(k => html += `<td>${r[k]}</td>`);
+                        html += `</tr>`;
+                    });
+                    html += `</tbody></table></div></div>`;
+                }
+            } else if (node.type === "Render/Chart") {
+                html += `
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-section"><div class="label-group"><label>Visual Template</label></div>
+                            <select onchange="updateProp(${node.id}, 'chartType', this.value)">
+                                <option value="bar" ${node.properties.chartType==='bar'?'selected':''}>Bar Chart</option>
+                                <option value="line" ${node.properties.chartType==='line'?'selected':''}>Line Graph</option>
+                                <option value="pie" ${node.properties.chartType==='pie'?'selected':''}>Pie Chart</option>
+                            </select>
+                        </div>
+                        <div class="form-section"><div class="label-group"><label>X-Axis (Label)</label></div>
+                            <input type="text" value="${node.properties.labelColumn}" onchange="updateProp(${node.id}, 'labelColumn', this.value)">
+                        </div>
+                    </div>
+                    <div class="form-section"><div class="label-group"><label>Y-Axis (Value)</label></div>
+                        <input type="text" value="${node.properties.valueColumn}" onchange="updateProp(${node.id}, 'valueColumn', this.value)">
+                    </div>
+                    <div class="chart-wrap"><canvas id="chartCtx"></canvas></div>
+                `;
+                setTimeout(() => renderChart(node, node.latestData), 100);
+            }
+            content.innerHTML = html;
+        }
+
+        window.onload = function() {
+            graph = new LiteGraph.LGraph();
+            canvas = new LiteGraph.LGraphCanvas("#graphcanvas", graph);
+            
+            // UI Tweaks for LiteGraph
+            canvas.background_color = "#0f0f11";
+            canvas.grid_color = "#1a1a1c";
+            
+            graph.start();
+
+            // --- Custom Node Implementation ---
+
+            // 1. Data Source Node
+            function SourceNode() {
+                this.addOutput("Stream", "array");
+                this.properties = { dataType: "json", rawData: "[]" };
+                this.size = [140, 60];
+            }
+            SourceNode.prototype.onExecute = function() {
+                try {
+                    const data = this.properties.dataType === 'json' ? 
+                                 JSON.parse(this.properties.rawData) : 
+                                 csvToJson(this.properties.rawData);
+                    this.setOutputData(0, data);
+                } catch (e) { this.setOutputData(0, []); }
+            };
+            LiteGraph.registerNodeType("Data/Source", SourceNode);
+
+            // 2. Logic Gate Node
+            function GateNode() {
+                this.addInput("In", "array");
+                this.addOutput("Out", "array");
+                this.properties = { column: "val", operator: ">", threshold: "0" };
+                this.size = [160, 60];
+            }
+            GateNode.prototype.onExecute = function() {
+                const data = this.getInputData(0);
+                if(!Array.isArray(data)) return this.setOutputData(0, []);
+                const res = data.filter(r => {
+                    const v = r[this.properties.column];
+                    const t = Number(this.properties.threshold);
+                    if(this.properties.operator === ">") return v > t;
+                    if(this.properties.operator === "<") return v < t;
+                    return v == t;
+                });
+                this.setOutputData(0, res);
+            };
+            LiteGraph.registerNodeType("Logic/Gate", GateNode);
+
+            // 3. Grid Visualization Node
+            function GridNode() { 
+                this.addInput("Data", "array"); 
+                this.latestData = null; 
+                this.size = [140, 40];
+            }
+            GridNode.prototype.onExecute = function() {
+                const d = this.getInputData(0);
+                if(JSON.stringify(d) !== JSON.stringify(this.latestData)) {
+                    this.latestData = d; 
+                    if(canvas.selected_nodes && canvas.selected_nodes[this.id]) renderInspector(this);
+                }
+            };
+            LiteGraph.registerNodeType("Render/Grid", GridNode);
+
+            // 4. Chart Visualization Node
+            function ChartNode() {
+                this.addInput("Data", "array");
+                this.properties = { chartType: "bar", labelColumn: "item", valueColumn: "val", title: "" };
+                this.latestData = null;
+                this.size = [140, 40];
+            }
+            ChartNode.prototype.onExecute = function() {
+                const d = this.getInputData(0);
+                if(JSON.stringify(d) !== JSON.stringify(this.latestData)) {
+                    this.latestData = d; 
+                    if(canvas.selected_nodes && canvas.selected_nodes[this.id]) renderInspector(this);
+                }
+            };
+            LiteGraph.registerNodeType("Render/Chart", ChartNode);
+
+            // --- Canvas Event Listeners ---
+
+            canvas.onNodeSelected = (node) => {
+                if (node) renderInspector(node);
+            };
+
+            canvas.onNodeDeselected = () => {
+                const content = document.getElementById('panel-content');
+                if (content) content.innerHTML = `<div class="empty-state">Select a system node to view its protocol and configuration.</div>`;
+            };
+
+            const resize = () => {
+                const wrapper = document.getElementById('canvas-wrapper');
+                if (wrapper && canvas) canvas.resize(wrapper.clientWidth, wrapper.clientHeight);
+            };
+
+            window.addEventListener('resize', resize);
+            resize();
+            
+            // Initial Preset
+            PRESETS.ecommerce();
+        };
+    </script>
+</body>
+</html>
