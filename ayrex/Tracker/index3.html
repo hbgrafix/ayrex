@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClinicalGuard Pro - Advanced Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.3s; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
+        .status-pill { padding: 4px 10px; border-radius: 9999px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .timeline-dot::before {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #6366f1;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px #e0e7ff;
+        }
+
+        .timeline-line::after {
+            content: '';
+            position: absolute;
+            left: -21px;
+            top: 15px;
+            bottom: -20px;
+            width: 2px;
+            background-color: #e0e7ff;
+        }
+        .timeline-line:last-child::after { display: none; }
+
+        @media (max-width: 768px) {
+            .sidebar-transition { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+            .sidebar-hidden { transform: translateX(-100%); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+    <!-- Mobile Header -->
+    <div class="md:hidden glass-card sticky top-0 z-[100] flex items-center justify-between p-4 border-b shadow-sm">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-indigo-200">CG</div>
+            <span class="font-bold tracking-tight">ClinicalGuard</span>
+        </div>
+        <button id="mobile-toggle" class="p-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>
+    </div>
+
+    <div class="flex relative">
+        <!-- Overlay for mobile -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/50 z-[105] hidden md:hidden transition-opacity"></div>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed md:sticky top-0 left-0 h-screen w-64 bg-slate-900 text-slate-300 z-[110] sidebar-transition sidebar-hidden md:transform-none flex flex-col shadow-2xl md:shadow-none">
+            <div class="p-6">
+                <div class="hidden md:flex items-center gap-3 mb-10">
+                    <div class="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-indigo-500/30">CG</div>
+                    <span class="text-xl font-bold text-white tracking-tight">Guard Pro</span>
+                </div>
+                
+                <nav class="space-y-2">
+                    <button onclick="nav('dash')" id="nav-dash" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 bg-slate-800 text-white font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                        Dashboard
+                    </button>
+                    <button onclick="nav('tracker')" id="nav-tracker" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Master Tracker
+                    </button>
+                    <button onclick="nav('auto')" id="nav-auto" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4 4 4"/><path d="M3 3v18h18"/><path d="m3 17 4-4 3 3 5-5"/></svg>
+                        Automation
+                        <span id="nav-badge" class="absolute right-4 top-3.5 flex h-2 w-2 hidden">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                        </span>
+                    </button>
+                </nav>
+            </div>
+            
+            <div class="mt-auto p-6 border-t border-slate-800 bg-slate-900/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-indigo-900 border border-indigo-700 flex items-center justify-center text-indigo-300 font-bold">JD</div>
+                    <div>
+                        <p class="text-xs font-bold text-white">Clinical Admin</p>
+                        <p class="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> DB Synced
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="flex-grow min-h-screen p-4 md:p-8 max-w-[1600px] mx-auto w-full">
+            
+            <!-- Views Container -->
+            <div id="view-dash" class="view space-y-8">
+                <header class="flex flex-col md:flex-row md:justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">Portfolio Compliance</h1>
+                        <p class="text-slate-500 text-sm mt-1">Smart expiry monitoring & notification engine</p>
+                    </div>
+                    <button onclick="showAddModal()" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Add Document
+                    </button>
+                </header>
+
+                <!-- Top Stats -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                    <div class="glass-card p-6 rounded-2xl border-l-4 border-red-500 hover:shadow-md transition-shadow">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-between">Expired <svg class="text-red-500" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></p>
+                        <h2 class="text-4xl font-black text-red-600" id="stat-expired">0</h2>
+                        <p class="text-[10px] text-red-600 font-bold bg-red-50 px-2 py-1 rounded inline-block mt-2 border border-red-100">IMMEDIATE ACTION</p>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl border-l-4 border-amber-500 hover:shadow-md transition-shadow">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-between">In Alert Window <svg class="text-amber-500" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></p>
+                        <h2 class="text-4xl font-black text-amber-600" id="stat-risk">0</h2>
+                        <p class="text-[10px] text-slate-500 mt-2 font-medium">Inside defined lead time</p>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl border-l-4 border-emerald-500 hover:shadow-md transition-shadow">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-between">Fully Compliant <svg class="text-emerald-500" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></p>
+                        <h2 class="text-4xl font-black text-emerald-600" id="stat-ok">0</h2>
+                        <p class="text-[10px] text-slate-500 mt-2 font-medium">Outside alert windows</p>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl border-l-4 border-indigo-500 bg-indigo-50/30 hover:shadow-md transition-shadow">
+                        <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1 flex items-center justify-between">Notices Pending <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.2 8.4c.5.3.8.8.8 1.4v10.2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.8c0-.6.3-1.1.8-1.4l8-4.8c.7-.4 1.7-.4 2.4 0l8 4.8Z"/><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"/></svg></p>
+                        <h2 class="text-4xl font-black text-indigo-600" id="stat-pending">0</h2>
+                        <button onclick="nav('auto')" class="text-[10px] text-white font-bold bg-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors mt-2">GO TO AUTOMATION</button>
+                    </div>
+                </div>
+
+                <!-- Dashboard Content -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+                    <!-- Priority Queue -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="glass-card rounded-2xl overflow-hidden shadow-sm">
+                            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-white/50">
+                                <h3 class="font-bold text-slate-800">Critical Priority Queue</h3>
+                                <span class="text-[10px] font-black text-slate-400 bg-slate-100 px-2 py-1 rounded">NEEDS ALERT</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead class="bg-slate-50/80 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b">
+                                        <tr>
+                                            <th class="px-6 py-4">Document / Staff</th>
+                                            <th class="px-6 py-4">Site</th>
+                                            <th class="px-6 py-4">Alert Status</th>
+                                            <th class="px-6 py-4 text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dash-priority-body" class="divide-y divide-slate-100 text-sm bg-white">
+                                        <!-- Injected -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Site Heatmap -->
+                    <div class="space-y-6">
+                        <div class="glass-card rounded-2xl p-6 shadow-sm">
+                            <h3 class="font-bold text-slate-800 mb-6 flex items-center justify-between">
+                                Site Health Score
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                            </h3>
+                            <div id="site-health-list" class="space-y-6 max-h-[400px] overflow-y-auto pr-2">
+                                <!-- Injected -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View: Tracker -->
+            <div id="view-tracker" class="view hidden space-y-6">
+                <header class="flex flex-col md:flex-row md:justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">Master Record Set</h1>
+                        <p class="text-slate-500 text-sm mt-1">Audit trail and complete inventory of investigator site files</p>
+                    </div>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <button onclick="exportData()" class="flex-grow md:flex-grow-0 px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export CSV
+                        </button>
+                    </div>
+                </header>
+
+                <div class="glass-card rounded-2xl overflow-hidden shadow-md">
+                    <div class="p-5 border-b bg-white/60 flex flex-col sm:flex-row gap-4 justify-between items-center">
+                        <div class="relative w-full sm:max-w-md">
+                            <input type="text" id="search-box" oninput="renderTracker()" placeholder="Search site, name, or document type..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm">
+                            <svg class="absolute left-3.5 top-3 text-slate-400" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b">
+                                <tr>
+                                    <th class="px-6 py-4">Researcher & Site</th>
+                                    <th class="px-6 py-4">Document Details</th>
+                                    <th class="px-6 py-4">Expiry Status</th>
+                                    <th class="px-6 py-4">Audit Log</th>
+                                    <th class="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tracker-body" class="divide-y divide-slate-100 text-sm bg-white">
+                                <!-- Injected -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View: Automation -->
+            <div id="view-auto" class="view hidden space-y-8">
+                <header>
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">Automation Center</h1>
+                    <p class="text-slate-500 text-sm mt-1">Review and dispatch scheduled reminders based on document lead times</p>
+                </header>
+
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
+                    <!-- Batch Processing -->
+                    <div class="xl:col-span-2 glass-card p-6 md:p-8 rounded-3xl space-y-6 border-t-8 border-indigo-600 shadow-md bg-white">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-900">Pending Notifications</h3>
+                                <p class="text-sm text-slate-500 mt-1">These items have entered their alert window and require notification.</p>
+                            </div>
+                            <span class="bg-indigo-100 text-indigo-700 font-black text-xs px-3 py-1 rounded-full uppercase tracking-wider" id="auto-count-badge">0 Pending</span>
+                        </div>
+                        
+                        <div id="batch-list" class="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                            <!-- Injected -->
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-100">
+                            <button id="btn-batch-send" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-indigo-600 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                                Execute Selected Notifications & Update Audit Logs
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Guidelines / Settings Info -->
+                    <div class="glass-card p-6 md:p-8 rounded-3xl space-y-6 shadow-sm h-fit">
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <svg class="text-indigo-500" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                            Scheduling Logic
+                        </h3>
+                        <div class="space-y-4 text-sm text-slate-600">
+                            <p><strong>Alert Windows:</strong> Each document has a custom "Notice Lead Time" (e.g., 30, 60, or 90 days). An item enters the queue only when its expiry date falls within this window.</p>
+                            <p><strong>Audit Trail Protection:</strong> Sending a notice updates the document's <em>Last Notified</em> timestamp and appends a permanent record to its history log to ensure GCP compliance.</p>
+                            <p><strong>Cooldown Period:</strong> To prevent spamming, the system will not flag an item for batch processing if it has already been notified within the last 7 days.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ADD MODAL -->
+    <div id="modal-add" class="fixed inset-0 bg-slate-900/60 z-[200] hidden items-center justify-center p-4 transition-opacity">
+        <div class="bg-white w-full max-w-xl rounded-3xl p-6 md:p-8 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="text-2xl font-extrabold text-slate-900 tracking-tight">New Document Record</h3>
+                    <p class="text-xs text-slate-500 uppercase tracking-widest font-bold mt-1">Initialize Tracker</p>
+                </div>
+                <button onclick="hideAddModal()" class="p-2 hover:bg-slate-100 text-slate-500 rounded-xl transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+            </div>
+            <form id="doc-form" class="space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Research Site / Institution</label>
+                        <input type="text" id="in-site" required class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-sm font-medium" placeholder="e.g. Oxford General Hospital">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Staff Name</label>
+                        <input type="text" id="in-staff" required class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-sm font-medium" placeholder="Dr. John Smith">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Contact Email</label>
+                        <input type="email" id="in-email" required class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-sm font-medium" placeholder="john@site.com">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Document Classification</label>
+                        <select id="in-type" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-sm font-medium appearance-none">
+                            <option value="GCP Certification (ICH)">GCP Certification (ICH)</option>
+                            <option value="Medical License">Medical License</option>
+                            <option value="Researcher CV">Researcher CV</option>
+                            <option value="Pharmacy License">Pharmacy License</option>
+                            <option value="IATA / Lab Training">IATA / Lab Training</option>
+                            <option value="Protocol Signature">Protocol Signature Page</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Valid Until (Expiry Date)</label>
+                        <input type="date" id="in-expiry" required class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-sm font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1.5 ml-1 flex items-center gap-1">Notice Lead Time</label>
+                        <select id="in-lead" class="w-full p-3.5 bg-indigo-50/50 border border-indigo-100 text-indigo-900 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm font-bold appearance-none">
+                            <option value="30">Alert at 30 Days before</option>
+                            <option value="60" selected>Alert at 60 Days before</option>
+                            <option value="90">Alert at 90 Days before</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="pt-6 border-t border-slate-100 mt-6">
+                    <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex justify-center items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                        Save & Begin Tracking
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- HISTORY MODAL -->
+    <div id="modal-history" class="fixed inset-0 bg-slate-900/60 z-[200] hidden items-center justify-center p-4 transition-opacity">
+        <div class="bg-white w-full max-w-lg rounded-3xl p-6 md:p-8 shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-start mb-6 pb-4 border-b border-slate-100">
+                <div>
+                    <h3 class="text-xl font-extrabold text-slate-900">Document Audit Trail</h3>
+                    <p id="hist-doc-info" class="text-xs text-slate-500 mt-1 font-medium">Document Info</p>
+                </div>
+                <button onclick="hideHistoryModal()" class="p-2 hover:bg-slate-100 text-slate-500 rounded-xl transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+            </div>
+            
+            <div class="overflow-y-auto flex-grow pr-2 pl-4 py-2" id="history-timeline">
+                <!-- Timeline items injected here -->
+            </div>
+
+            <div class="pt-6 border-t border-slate-100 mt-4">
+                <button id="btn-force-alert" class="w-full bg-slate-100 text-slate-700 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-all text-sm flex justify-center items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                    Send Manual Reminder Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /** * CLINICAL GUARD PRO - ADVANCED LOGIC ENGINE
+         * Audit Trails, Scheduling, Data Migration
+         */
+
+        // 1. Data Initialization & Migration
+        const SEED_DATA = [
+            { id: 1, site: "Oxford Health", staff: "Dr. Alice Morgan", email: "a.morgan@ox.edu", type: "GCP Certification (ICH)", expiry: "2024-03-15", leadTime: 60, lastNotified: null, history: [{date: new Date(Date.now() - 8640000000).toISOString(), type: "CREATED", note: "Initial record established"}] },
+            { id: 2, site: "Oxford Health", staff: "Dr. Alice Morgan", email: "a.morgan@ox.edu", type: "Medical License", expiry: "2024-06-20", leadTime: 90, lastNotified: new Date(Date.now() - 172800000).toISOString(), history: [{date: new Date(Date.now() - 172800000).toISOString(), type: "ALERT", note: "Automated 90-day warning sent"}] },
+            { id: 3, site: "London Clinical", staff: "Mark Evans", email: "m.evans@london.uk", type: "Researcher CV", expiry: "2024-05-10", leadTime: 30, lastNotified: null, history: [{date: new Date(Date.now() - 4000000000).toISOString(), type: "CREATED", note: "Initial record established"}] }
+        ];
+
+        let state = JSON.parse(localStorage.getItem('cgp_state')) || SEED_DATA;
+        
+        // Migrate old data to new schema (ensure leadTime, lastNotified, history exist)
+        state = state.map(doc => ({
+            ...doc,
+            leadTime: doc.leadTime || 60,
+            lastNotified: doc.lastNotified || null,
+            history: doc.history || [{date: new Date().toISOString(), type: "SYSTEM", note: "Migrated to Pro Engine"}]
+        }));
+        saveState();
+
+        function saveState() {
+            localStorage.setItem('cgp_state', JSON.stringify(state));
+        }
+
+        // 2. Navigation
+        const views = { dash: document.getElementById('view-dash'), tracker: document.getElementById('view-tracker'), auto: document.getElementById('view-auto') };
+
+        function nav(key) {
+            Object.values(views).forEach(v => v.classList.add('hidden'));
+            views[key].classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(i => {
+                i.classList.remove('bg-slate-800', 'text-white', 'font-medium');
+                i.classList.add('text-slate-400');
+            });
+            document.getElementById(`nav-${key}`).classList.add('bg-slate-800', 'text-white', 'font-medium');
+            document.getElementById(`nav-${key}`).classList.remove('text-slate-400');
+            
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('sidebar-hidden');
+                document.getElementById('sidebar-overlay').classList.add('hidden');
+            }
+            
+            renderAll();
+        }
+
+        document.getElementById('mobile-toggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('sidebar-hidden');
+            document.getElementById('sidebar-overlay').classList.toggle('hidden');
+        });
+        document.getElementById('sidebar-overlay').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.add('sidebar-hidden');
+            document.getElementById('sidebar-overlay').classList.add('hidden');
+        });
+
+        // 3. Logic Engine
+        function getStatus(doc) {
+            const expiry = new Date(doc.expiry);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const diffDays = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+            
+            let isNeedsAlert = false;
+            // "Needs Alert" if within lead time AND hasn't been notified in the last 7 days
+            if (diffDays <= doc.leadTime) {
+                if (!doc.lastNotified) {
+                    isNeedsAlert = true;
+                } else {
+                    const daysSinceLastNotice = Math.ceil((new Date() - new Date(doc.lastNotified)) / (1000 * 60 * 60 * 24));
+                    if (daysSinceLastNotice > 7) isNeedsAlert = true; // Remind every 7 days if still in window
+                }
+            }
+
+            if (diffDays <= 0) return { code: 'CRIT', label: 'Expired', color: 'bg-red-100 text-red-700 border-red-200', diff: diffDays, needsAlert: isNeedsAlert };
+            if (diffDays <= doc.leadTime) return { code: 'RISK', label: `${diffDays}D Left`, color: 'bg-amber-100 text-amber-700 border-amber-200', diff: diffDays, needsAlert: isNeedsAlert };
+            return { code: 'OK', label: 'Valid', color: 'bg-emerald-100 text-emerald-700 border-emerald-200', diff: diffDays, needsAlert: false };
+        }
+
+        function formatDate(isoString) {
+            if(!isoString) return 'Never';
+            const d = new Date(isoString);
+            return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        // 4. Rendering Systems
+        function renderAll() {
+            renderDashboard();
+            renderTracker();
+            renderAutomation();
+        }
+
+        function renderDashboard() {
+            const priorityTable = document.getElementById('dash-priority-body');
+            const healthList = document.getElementById('site-health-list');
+            priorityTable.innerHTML = '';
+            healthList.innerHTML = '';
+
+            const itemsWithStatus = state.map(d => ({...d, s: getStatus(d)}));
+            const priorityItems = itemsWithStatus.filter(d => d.s.needsAlert);
+            
+            // Badge Update
+            const badge = document.getElementById('nav-badge');
+            if(priorityItems.length > 0) badge.classList.remove('hidden'); else badge.classList.add('hidden');
+
+            // Priority Queue
+            priorityItems.sort((a,b) => a.s.diff - b.s.diff).slice(0, 10).forEach(item => {
+                priorityTable.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <p class="font-bold text-slate-900">${item.staff}</p>
+                            <p class="text-[10px] font-black uppercase text-slate-500">${item.type}</p>
+                        </td>
+                        <td class="px-6 py-4 text-slate-600 text-xs font-medium">${item.site}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col gap-1 items-start">
+                                <span class="status-pill ${item.s.color}">${item.s.label}</span>
+                                <span class="text-[9px] text-slate-400 font-bold tracking-tight">LAST: ${formatDate(item.lastNotified).toUpperCase()}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <button onclick="triggerAlert(${item.id})" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 font-bold text-[10px] rounded hover:bg-indigo-600 hover:text-white transition-all uppercase tracking-wider">Send Notice</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            if (priorityItems.length === 0) {
+                priorityTable.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-slate-400 text-sm italic">All alerts are currently resolved or queued properly.</td></tr>`;
+            }
+
+            // Site Health Heatmap
+            const siteGroups = [...new Set(state.map(d => d.site))];
+            siteGroups.forEach(siteName => {
+                const siteDocs = itemsWithStatus.filter(d => d.site === siteName);
+                const validCount = siteDocs.filter(d => d.s.code === 'OK').length;
+                const score = Math.round((validCount / siteDocs.length) * 100);
+                const barColor = score > 80 ? 'bg-emerald-500' : score > 50 ? 'bg-amber-500' : 'bg-red-500';
+                
+                healthList.innerHTML += `
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <span class="text-xs font-bold text-slate-700">${siteName}</span>
+                            <span class="text-[10px] font-black ${score > 50 ? 'text-emerald-600' : 'text-red-600'}">${score}% COMPLIANT</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden shadow-inner">
+                            <div class="h-full ${barColor}" style="width: ${score}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Update Stats
+            document.getElementById('stat-expired').innerText = itemsWithStatus.filter(d => d.s.code === 'CRIT').length;
+            document.getElementById('stat-risk').innerText = itemsWithStatus.filter(d => d.s.code === 'RISK').length;
+            document.getElementById('stat-ok').innerText = itemsWithStatus.filter(d => d.s.code === 'OK').length;
+            document.getElementById('stat-pending').innerText = priorityItems.length;
+        }
+
+        function renderTracker() {
+            const query = document.getElementById('search-box').value.toLowerCase();
+            const body = document.getElementById('tracker-body');
+            body.innerHTML = '';
+
+            state.filter(d => d.site.toLowerCase().includes(query) || d.staff.toLowerCase().includes(query) || d.type.toLowerCase().includes(query)).forEach(doc => {
+                const s = getStatus(doc);
+                body.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <p class="font-bold text-slate-900">${doc.staff}</p>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-tight">${doc.site}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 bg-slate-100 rounded text-[10px] font-bold text-slate-700 uppercase mb-1 inline-block">${doc.type}</span>
+                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tight">Exp: <span class="font-mono">${doc.expiry}</span></p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="status-pill ${s.color}">${s.label}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <button onclick="showHistory(${doc.id})" class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-1 rounded transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                                View Log (${doc.history.length})
+                            </button>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <button onclick="removeDoc(${doc.id})" class="text-slate-300 hover:text-red-600 p-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderAutomation() {
+            const batchContainer = document.getElementById('batch-list');
+            batchContainer.innerHTML = '';
+
+            const itemsWithStatus = state.map(d => ({...d, s: getStatus(d)}));
+            const pendingItems = itemsWithStatus.filter(d => d.s.needsAlert);
+            
+            document.getElementById('auto-count-badge').innerText = `${pendingItems.length} Pending Notices`;
+
+            if(pendingItems.length === 0) {
+                batchContainer.innerHTML = `
+                    <div class="p-8 text-center bg-emerald-50 rounded-2xl border border-emerald-100">
+                        <svg class="mx-auto text-emerald-500 mb-2" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <p class="font-bold text-emerald-800">Queue Clear</p>
+                        <p class="text-xs text-emerald-600 mt-1">All scheduled notifications have been handled.</p>
+                    </div>`;
+                document.getElementById('btn-batch-send').disabled = true;
+                return;
+            }
+
+            pendingItems.forEach(doc => {
+                batchContainer.innerHTML += `
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center auto-item" data-id="${doc.id}">
+                        <div>
+                            <p class="font-bold text-sm text-slate-900">${doc.staff} <span class="text-slate-400 font-normal">| ${doc.site}</span></p>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-tight mt-0.5">${doc.type} &bull; ${doc.s.label}</p>
+                        </div>
+                        <input type="checkbox" checked class="w-5 h-5 accent-indigo-600 batch-checkbox" data-id="${doc.id}">
+                    </div>
+                `;
+            });
+            document.getElementById('btn-batch-send').disabled = false;
+        }
+
+        // 5. Actions (Add, Remove, Alert, History)
+        function showAddModal() { document.getElementById('modal-add').classList.remove('hidden'); document.getElementById('modal-add').classList.add('flex'); }
+        function hideAddModal() { document.getElementById('modal-add').classList.add('hidden'); document.getElementById('modal-add').classList.remove('flex'); }
+        function hideHistoryModal() { document.getElementById('modal-history').classList.add('hidden'); document.getElementById('modal-history').classList.remove('flex'); }
+
+        document.getElementById('doc-form').onsubmit = (e) => {
+            e.preventDefault();
+            const newItem = {
+                id: Date.now(),
+                site: document.getElementById('in-site').value,
+                staff: document.getElementById('in-staff').value,
+                email: document.getElementById('in-email').value,
+                type: document.getElementById('in-type').value,
+                expiry: document.getElementById('in-expiry').value,
+                leadTime: parseInt(document.getElementById('in-lead').value),
+                lastNotified: null,
+                history: [{
+                    date: new Date().toISOString(),
+                    type: "CREATED",
+                    note: `Record initialized with ${document.getElementById('in-lead').value}-day alert lead time.`
+                }]
+            };
+            state.push(newItem);
+            saveState();
+            hideAddModal();
+            e.target.reset();
+            renderAll();
+            showNotice("Record added to secure vault");
+        };
+
+        function removeDoc(id) {
+            if(confirm("Remove this document? This destroys the audit trail permanently.")) {
+                state = state.filter(d => d.id !== id);
+                saveState();
+                renderAll();
+            }
+        }
+
+        // The core notification function (Single)
+        function triggerAlert(id) {
+            const docIndex = state.findIndex(d => d.id === id);
+            if(docIndex === -1) return;
+            const doc = state[docIndex];
+            
+            // 1. Prepare simulated email
+            const subject = encodeURIComponent(`Action Required: ${doc.type} Renewal - ${doc.site}`);
+            const body = encodeURIComponent(`Dear ${doc.staff},\n\nThis is an automated compliance notice.\nYour ${doc.type} is expiring on ${doc.expiry}.\n\nPlease ensure a renewed version is submitted to the clinical administration team to avoid study access interruption.\n\nThank you.`);
+            
+            // 2. Open Mail client
+            window.location.href = `mailto:${doc.email}?subject=${subject}&body=${body}`;
+            
+            // 3. Update Audit Trail & State
+            state[docIndex].lastNotified = new Date().toISOString();
+            state[docIndex].history.push({
+                date: new Date().toISOString(),
+                type: "ALERT_SENT",
+                note: "Compliance reminder dispatched to staff email."
+            });
+            
+            saveState();
+            renderAll();
+            showNotice("Audit log updated. Opening mail client...");
+            if(!document.getElementById('modal-history').classList.contains('hidden')) showHistory(id); // refresh modal if open
+        }
+
+        // Batch processing
+        document.getElementById('btn-batch-send').onclick = () => {
+            const checkboxes = document.querySelectorAll('.batch-checkbox:checked');
+            if(checkboxes.length === 0) return;
+            
+            let count = 0;
+            checkboxes.forEach(cb => {
+                const id = parseInt(cb.dataset.id);
+                const docIndex = state.findIndex(d => d.id === id);
+                if(docIndex !== -1) {
+                    state[docIndex].lastNotified = new Date().toISOString();
+                    state[docIndex].history.push({
+                        date: new Date().toISOString(),
+                        type: "BATCH_ALERT",
+                        note: "Automated batch reminder processed by system."
+                    });
+                    count++;
+                }
+            });
+
+            saveState();
+            renderAll();
+            
+            alert(`AUTOMATION COMPLETE: ${count} notices marked as sent. Audit logs have been permanently updated.`);
+        };
+
+        // History UI
+        function showHistory(id) {
+            const doc = state.find(d => d.id === id);
+            if(!doc) return;
+
+            document.getElementById('hist-doc-info').innerText = `${doc.type} for ${doc.staff} (${doc.site})`;
+            const timeline = document.getElementById('history-timeline');
+            timeline.innerHTML = '';
+
+            const sortedHistory = [...doc.history].sort((a,b) => new Date(b.date) - new Date(a.date)); // Newest first
+
+            sortedHistory.forEach(log => {
+                let badgeColor = log.type.includes('ALERT') ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700';
+                if(log.type === 'CREATED') badgeColor = 'bg-emerald-100 text-emerald-700';
+
+                timeline.innerHTML += `
+                    <div class="relative pl-6 pb-6 timeline-line">
+                        <div class="timeline-dot"></div>
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-1 mb-1">
+                            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${badgeColor}">${log.type}</span>
+                            <span class="text-[10px] font-bold text-slate-400">${new Date(log.date).toLocaleString()}</span>
+                        </div>
+                        <p class="text-sm text-slate-600">${log.note}</p>
+                    </div>
+                `;
+            });
+
+            // Set up manual trigger
+            const forceBtn = document.getElementById('btn-force-alert');
+            forceBtn.onclick = () => triggerAlert(doc.id);
+
+            document.getElementById('modal-history').classList.remove('hidden');
+            document.getElementById('modal-history').classList.add('flex');
+        }
+
+        // Utils
+        function exportData() {
+            const csv = "Site,Staff,Email,Document Type,Expiry Date,Lead Time (Days),Last Notified\n" + 
+                state.map(d => `"${d.site}","${d.staff}","${d.email}","${d.type}","${d.expiry}","${d.leadTime}","${d.lastNotified ? new Date(d.lastNotified).toLocaleString() : 'Never'}"`).join("\n");
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `compliance_export_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        function showNotice(msg) {
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-8 right-8 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl z-[300] font-bold text-sm animate-bounce flex items-center gap-3";
+            toast.innerHTML = `<svg class="text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> ${msg}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // Initial Load
+        nav('dash');
+    </script>
+</body>
+</html>

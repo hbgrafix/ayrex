@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noor | Advanced Prayer Reference</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #050505;
+            --card: #111111;
+            --text: #e6edf3;
+            --text-dim: #6e7681;
+            --border: #222222;
+            --blue-next: #3b82f6;
+            --grey-prev: #4b5563;
+        }
+
+        * { box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+
+        /* Global Header */
+        .global-header {
+            width: 100%;
+            background: rgba(5, 5, 5, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+        }
+        
+        .global-time { font-size: 2.2rem; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -1px; margin: 0; line-height: 1; }
+        .global-dates { text-align: right; }
+        .global-hijri { color: var(--primary); font-weight: 700; font-size: 1.1rem; }
+        .global-gregorian { color: var(--text-dim); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Navigation */
+        nav { width: 100%; max-width: 1000px; display: flex; padding: 0.5rem 1rem; background: var(--bg); position: sticky; top: 76px; z-index: 100; border-bottom: 1px solid var(--border); }
+        nav button { flex: 1; background: none; border: none; color: var(--text-dim); cursor: pointer; font-weight: 700; font-size: 0.85rem; padding: 15px; transition: all 0.2s; border-bottom: 2px solid transparent; }
+        nav button.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
+        nav button:hover { color: var(--text); background: rgba(255,255,255,0.02); }
+
+        .container { width: 95%; max-width: 1000px; padding: 2rem 0; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Dashboard Grid */
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
+        @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; }
+
+        /* Clock Elements */
+        .analog-clock {
+            width: 240px; height: 240px; border: 4px solid var(--border); border-radius: 50%;
+            margin: 1rem auto; position: relative; background: radial-gradient(circle, #1a1a1a, #050505);
+        }
+        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; background: var(--text); border-radius: 4px; z-index: 10; }
+        #hour-hand { width: 4px; height: 60px; background: var(--primary); }
+        #min-hand { width: 2px; height: 90px; }
+        #sec-hand { width: 1px; height: 100px; background: #ff3366; }
+        
+        .marker { position: absolute; font-size: 11px; font-weight: 600; transform: translate(-50%, -50%); color: var(--text-dim); }
+        .marker.number { font-size: 14px; opacity: 0.3; }
+        .marker.prayer { background: var(--card); padding: 2px 4px; border-radius: 4px; border: 1px solid var(--border); z-index: 5;}
+
+        /* Table & Row States */
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.95rem; }
+        th, td { padding: 14px 12px; text-align: left; border-bottom: 1px solid var(--border); transition: all 0.3s ease; }
+        th { color: var(--text-dim); font-weight: 700; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+        
+        /* Dynamic Row States */
+        tr.prev-prayer td { color: var(--grey-prev); text-decoration: line-through text-decoration-color: rgba(255,255,255,0.1); }
+        tr.next-prayer td { color: var(--blue-next); font-weight: 600; background: rgba(59, 130, 246, 0.05); }
+        tr.current-prayer td { font-weight: 800; font-size: 1.05rem; }
+        
+        /* Filter Controls */
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 15px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border); }
+        .filter-group { display: flex; flex-direction: column; flex: 1; min-width: 150px; }
+        .filter-group label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 5px; font-weight: 700; }
+        
+        select, input, button.action-btn { width: 100%; padding: 10px 12px; background: #0a0a0a; border: 1px solid var(--border); color: white; border-radius: 8px; font-family: inherit; }
+        select:focus, input:focus { outline: none; border-color: var(--primary); }
+        button.action-btn { background: var(--primary); font-weight: 700; cursor: pointer; border: none; transition: 0.2s; }
+        button.action-btn:hover { filter: brightness(1.2); }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<header class="global-header">
+    <div>
+        <h1 class="global-time" id="global-time">00:00:00</h1>
+        <div style="color: var(--text-dim); font-size: 0.9rem; margin-top: 4px;" id="location-display">Initializing...</div>
+    </div>
+    <div class="global-dates">
+        <div class="global-hijri" id="global-hijri">Loading...</div>
+        <div class="global-gregorian" id="global-gregorian">Loading...</div>
+    </div>
+</header>
+
+<nav>
+    <button class="active" onclick="switchTab('dash')">DASHBOARD</button>
+    <button onclick="switchTab('calendar')">REFERENCE CALENDAR</button>
+    <button onclick="switchTab('settings')">SETTINGS</button>
+</nav>
+
+<div class="container">
+    <div id="dash" class="tab-content active">
+        <div class="dashboard-grid">
+            <div class="card clock-box" style="text-align: center;">
+                <h3 style="margin-top:0; color: var(--text-dim);">Live Tracking</h3>
+                <div class="analog-clock" id="prayer-clock">
+                    <div id="clock-face"></div>
+                    <div class="hand" id="hour-hand"></div>
+                    <div class="hand" id="min-hand"></div>
+                    <div class="hand" id="sec-hand"></div>
+                </div>
+            </div>
+
+            <div class="card" style="overflow-x: auto;">
+                <h3 style="margin-top:0;">Today's Timings</h3>
+                <table id="today-table">
+                    <thead><tr><th>Prayer</th><th>Time</th><th>Status</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="calendar" class="tab-content">
+        <div class="card">
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label>Filter Mode</label>
+                    <select id="filter-mode" onchange="toggleFilterMode()">
+                        <option value="gregorian">Gregorian Month</option>
+                        <option value="hijri">Hijri Month</option>
+                        <option value="range">Custom Date Range</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group mode-gregorian">
+                    <label>Month</label>
+                    <select id="filter-greg-month"></select>
+                </div>
+
+                <div class="filter-group mode-hijri hidden">
+                    <label>Hijri Month</label>
+                    <select id="filter-hijri-month">
+                        <option value="1">1 - Muharram</option>
+                        <option value="2">2 - Safar</option>
+                        <option value="3">3 - Rabi al-Awwal</option>
+                        <option value="4">4 - Rabi al-Thani</option>
+                        <option value="5">5 - Jumada al-Awwal</option>
+                        <option value="6">6 - Jumada al-Thani</option>
+                        <option value="7">7 - Rajab</option>
+                        <option value="8">8 - Sha'ban</option>
+                        <option value="9">9 - Ramadan</option>
+                        <option value="10">10 - Shawwal</option>
+                        <option value="11">11 - Dhu al-Qi'dah</option>
+                        <option value="12">12 - Dhu al-Hijjah</option>
+                    </select>
+                </div>
+
+                <div class="filter-group mode-range hidden">
+                    <label>From Date</label>
+                    <input type="date" id="filter-from-date">
+                </div>
+                <div class="filter-group mode-range hidden">
+                    <label>To Date</label>
+                    <input type="date" id="filter-to-date">
+                </div>
+
+                <div class="filter-group" style="justify-content: flex-end;">
+                    <button class="action-btn" onclick="applyCalendarFilters()">Apply Filter</button>
+                </div>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table id="month-table">
+                    <thead>
+                        <tr><th>Gregorian</th><th>Hijri</th><th>Fajr</th><th>Sunrise</th><th>Dhuhr</th><th>Asr</th><th>Maghrib</th><th>Isha</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings" class="tab-content">
+        <div class="card">
+            <h3 style="margin-top:0;">Configuration</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="filter-group"><label>Country</label><select id="country-select"><option value="Pakistan">Pakistan</option></select></div>
+                <div class="filter-group"><label>City</label><input type="text" id="city-input" value="Islamabad"></div>
+                <div class="filter-group">
+                    <label>Calculation Method</label>
+                    <select id="method-select">
+                        <option value="3">Muslim World League</option>
+                        <option value="2">ISNA</option>
+                        <option value="4">Umm al-Qura</option>
+                        <option value="1">Egyptian Authority</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Asr Fiqh</label>
+                    <select id="fiqh-select">
+                        <option value="0">Standard (Shafi/Maliki/Hanbali)</option>
+                        <option value="1">Hanafi</option>
+                    </select>
+                </div>
+            </div>
+            <button class="action-btn" onclick="fetchAnnualData()" style="margin-top: 20px;">Save & Recalculate</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // State
+    let state = {
+        city: 'Islamabad', country: 'Pakistan', method: 3, school: 0,
+        annualData: [], todayData: null, timezone: 'Asia/Karachi'
+    };
+
+    const mainPrayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+    const allPrayers = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Sunset", "Maghrib", "Isha", "Midnight"];
+
+    window.onload = async () => {
+        populateSelectors();
+        await fetchAnnualData();
+        setInterval(tick, 1000);
+    };
+
+    function populateSelectors() {
+        const gregSelect = document.getElementById('filter-greg-month');
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        months.forEach((m, i) => gregSelect.innerHTML += `<option value="${i+1}">${m}</option>`);
+        gregSelect.value = new Date().getMonth() + 1;
+
+        fetch("https://restcountries.com/v3.1/all?fields=name")
+            .then(r => r.json())
+            .then(data => {
+                const select = document.getElementById('country-select');
+                select.innerHTML = data.map(c => c.name.common).sort().map(c => `<option value="${c}" ${c==='Pakistan'?'selected':''}>${c}</option>`).join('');
+            });
+    }
+
+    function toggleFilterMode() {
+        const mode = document.getElementById('filter-mode').value;
+        document.querySelectorAll('.mode-gregorian, .mode-hijri, .mode-range').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll(`.mode-${mode}`).forEach(el => el.classList.remove('hidden'));
+    }
+
+    // --- API & Data Engine ---
+    async function fetchAnnualData() {
+        state.city = document.getElementById('city-input').value;
+        state.country = document.getElementById('country-select').value;
+        state.method = document.getElementById('method-select').value;
+        state.school = document.getElementById('fiqh-select').value;
+        
+        document.getElementById('location-display').innerText = `${state.city}, ${state.country} (Fetching...)`;
+
+        const year = new Date().getFullYear();
+        const url = `https://api.aladhan.com/v1/calendarByCity/${year}?city=${state.city}&country=${state.country}&method=${state.method}&school=${state.school}`;
+        const res = await fetch(url);
+        const json = await res.json();
+        
+        // Flatten the annual JSON { "1": [...], "2": [...] } into a single array of 365 days
+        state.annualData = Object.values(json.data).flat();
+        state.timezone = state.annualData[0].meta.timezone;
+        
+        // Find "Today"
+        const todayStr = new Date().toLocaleDateString('en-GB', {timeZone: state.timezone}).replace(/\//g, '-');
+        state.todayData = state.annualData.find(d => d.date.gregorian.date === todayStr) || state.annualData[0];
+
+        // Update Headers
+        document.getElementById('location-display').innerText = `${state.city}, ${state.country}`;
+        document.getElementById('global-hijri').innerText = `${state.todayData.date.hijri.day} ${state.todayData.date.hijri.month.en} ${state.todayData.date.hijri.year} AH`;
+        
+        renderTodayTable();
+        drawClockMarkers();
+        applyCalendarFilters();
+        switchTab('dash');
+    }
+
+    // --- Rendering Engine ---
+    function renderTodayTable() {
+        const tbody = document.querySelector('#today-table tbody');
+        tbody.innerHTML = allPrayers.map(p => `
+            <tr id="row-${p}" data-prayer="${p}">
+                <td>${p}</td>
+                <td style="font-variant-numeric: tabular-nums;">${formatTime(state.todayData.timings[p])}</td>
+                <td class="status-cell">-</td>
+            </tr>
+        `).join('');
+    }
+
+    function drawClockMarkers() {
+        const face = document.getElementById('clock-face');
+        face.innerHTML = '';
+        
+        for(let i=1; i<=12; i++) {
+            const angle = i * 30 - 90;
+            const x = 50 + 32 * Math.cos(angle * Math.PI / 180);
+            const y = 50 + 32 * Math.sin(angle * Math.PI / 180);
+            face.innerHTML += `<div class="marker number" style="left:${x}%; top:${y}%">${i}</div>`;
+        }
+
+        mainPrayers.forEach(p => {
+            const [h, m] = state.todayData.timings[p].split(' ')[0].split(':');
+            const angle = (parseInt(h) % 12 + parseInt(m)/60) * 30 - 90;
+            const x = 50 + 44 * Math.cos(angle * Math.PI / 180);
+            const y = 50 + 44 * Math.sin(angle * Math.PI / 180);
+            face.innerHTML += `<div class="marker prayer" id="marker-${p}" style="left:${x}%; top:${y}%">${p}</div>`;
+        });
+    }
+
+    function applyCalendarFilters() {
+        const mode = document.getElementById('filter-mode').value;
+        let filtered = [];
+
+        if (mode === 'gregorian') {
+            const m = document.getElementById('filter-greg-month').value.padStart(2, '0');
+            filtered = state.annualData.filter(d => d.date.gregorian.month.number.toString().padStart(2, '0') === m);
+        } else if (mode === 'hijri') {
+            const m = document.getElementById('filter-hijri-month').value;
+            filtered = state.annualData.filter(d => d.date.hijri.month.number.toString() === m);
+        } else if (mode === 'range') {
+            const from = new Date(document.getElementById('filter-from-date').value).getTime();
+            const to = new Date(document.getElementById('filter-to-date').value).getTime();
+            filtered = state.annualData.filter(d => {
+                // Aladhan gregorian date is DD-MM-YYYY, convert to checkable format
+                const parts = d.date.gregorian.date.split('-');
+                const t = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).getTime();
+                return t >= from && t <= to;
+            });
+        }
+
+        const tbody = document.querySelector('#month-table tbody');
+        tbody.innerHTML = filtered.map(d => `
+            <tr>
+                <td style="color:var(--text-dim);">${d.date.gregorian.date}</td>
+                <td style="color:var(--primary); font-weight:bold;">${d.date.hijri.day} ${d.date.hijri.month.en.substring(0,3)}</td>
+                <td>${formatTime(d.timings.Fajr)}</td>
+                <td>${formatTime(d.timings.Sunrise)}</td>
+                <td>${formatTime(d.timings.Dhuhr)}</td>
+                <td>${formatTime(d.timings.Asr)}</td>
+                <td>${formatTime(d.timings.Maghrib)}</td>
+                <td>${formatTime(d.timings.Isha)}</td>
+            </tr>
+        `).join('');
+    }
+
+    // --- Time Logic & Colors ---
+    function formatTime(t) {
+        let [h, m] = t.split(' ')[0].split(':');
+        let ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        return `${h}:${m} ${ampm}`;
+    }
+
+    function timeToMins(timeStr) {
+        let [h, m] = timeStr.split(' ')[0].split(':').map(Number);
+        return h * 60 + m;
+    }
+
+    function tick() {
+        if (!state.todayData) return;
+        const now = new Date(new Date().toLocaleString("en-US", { timeZone: state.timezone }));
+        const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+        const nowMins = h * 60 + m;
+
+        // Global Header Update
+        document.getElementById('global-time').innerText = now.toLocaleTimeString('en-US');
+        document.getElementById('global-gregorian').innerText = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        // Clock Update
+        document.getElementById('hour-hand').style.transform = `rotate(${(h % 12) * 30 + m/2}deg)`;
+        document.getElementById('min-hand').style.transform = `rotate(${m * 6}deg)`;
+        document.getElementById('sec-hand').style.transform = `rotate(${s * 6}deg)`;
+
+        // Visual Cues Engine
+        updateVisualCues(nowMins);
+    }
+
+    function updateVisualCues(nowMins) {
+        let currentIndex = -1;
+        let times = mainPrayers.map(p => timeToMins(state.todayData.timings[p]));
+
+        // Determine current prayer index
+        for (let i = times.length - 1; i >= 0; i--) {
+            if (nowMins >= times[i]) { currentIndex = i; break; }
+        }
+        
+        // Edge case: Before Fajr, it belongs to yesterday's Isha
+        if (currentIndex === -1) currentIndex = 4; // Isha
+
+        let nextIndex = (currentIndex + 1) % times.length;
+        
+        let startTime = times[currentIndex];
+        let endTime = times[nextIndex];
+        
+        // Wrap around midnight for Isha duration logic
+        if (currentIndex === 4 && nowMins < times[0]) startTime -= 1440; // Yesterday's Isha
+        if (currentIndex === 4 && nowMins >= times[4]) endTime += 1440; // Tomorrow's Fajr
+
+        // Calculate Green-to-Red gradient for the current prayer
+        let elapsed = nowMins - startTime;
+        let total = endTime - startTime;
+        let ratio = Math.max(0, Math.min(1, elapsed / total));
+        let hue = 120 * (1 - ratio); // 120 is Green, 0 is Red
+        let activeColor = `hsl(${hue}, 80%, 55%)`;
+
+        // Apply styles to all rows and markers
+        allPrayers.forEach(p => {
+            let row = document.getElementById(`row-${p}`);
+            let marker = document.getElementById(`marker-${p}`);
+            let isMain = mainPrayers.includes(p);
+            let mIndex = mainPrayers.indexOf(p);
+            
+            if (row) {
+                row.className = '';
+                row.style.borderLeft = 'none';
+                row.querySelector('.status-cell').innerText = '';
+                
+                if (isMain) {
+                    if (mIndex === currentIndex) {
+                        row.classList.add('current-prayer');
+                        row.style.borderLeft = `4px solid ${activeColor}`;
+                        row.style.color = activeColor;
+                        row.querySelector('.status-cell').innerText = 'CURRENT';
+                        if(marker) { marker.style.borderColor = activeColor; marker.style.color = activeColor; }
+                    } 
+                    else if (mIndex === nextIndex) {
+                        row.classList.add('next-prayer');
+                        row.querySelector('.status-cell').innerText = 'UPCOMING';
+                        if(marker) { marker.style.borderColor = 'var(--blue-next)'; marker.style.color = 'var(--text)'; }
+                    } 
+                    else {
+                        row.classList.add('prev-prayer');
+                        if(marker) { marker.style.borderColor = 'var(--border)'; marker.style.color = 'var(--text-dim)'; }
+                    }
+                }
+            }
+        });
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+</script>
+</body>
+</html>
